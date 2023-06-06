@@ -6,6 +6,7 @@ const cors = require('cors');
 const mongoose = require(`mongoose`)
 const app = express();
 app.use(cors());
+app.use(express.json())
 
 const PORT = process.env.PORT || 3001;
 let mongomodel = undefined
@@ -46,5 +47,25 @@ app.get('/books', async (request,response) =>{
 let books = await mongomodel.find({});
 response.send(books)
 })
+app.post('/books', async (request, response) => {
+  const { title, description, status } = request.body;
+  
+    if (!title || !description || !status) {
+      return response.status(400).send('Missing required fields'); // Return a 400 Bad Request if any required fields are missing
+    }
+  const newBook = await mongomodel.create({
+    title,
+    description,
+    status
+  });
+ const insertedBooks = await mongomodel.insertMany([newBook]); // Insert the new book into the database
 
+ if (insertedBooks.length === 0) {
+  return response.status(500).send('Failed to insert book'); // Return a 500 Internal Server Error if the book insertion fails
+
+}
+
+    response.send(newBook); // Send the created book as the response
+  
+});
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
