@@ -68,4 +68,28 @@ app.post('/books', async (request, response) => {
     response.send(newBook); // Send the created book as the response
   
 });
+
+app.delete('/books/:id', async (request, response) => {
+  let  bookId  = request.params.id;
+
+  if (!id) {
+    return response.status(400).send('Missing book ID');
+  }
+
+  try {
+    let deletedBook = await mongomodel.findByIdAndDelete(bookId);
+
+    if (!deletedBook) {
+      return response.status(404).send('Book not found');
+    }
+
+    response.send('Book deleted successfully')
+
+    response.send(deletedBook);
+  } catch (error) {
+    response.status(500).send('Failed to delete book');
+  }
+});
+
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
+
