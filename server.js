@@ -69,6 +69,28 @@ app.post('/books', async (request, response) => {
   
 });
 
+app.put('/books/:id', async (request, response) => {
+  let bookId = request.params.id;
+  let { title, description, status } = request.body;
+
+  if (!title || !description || !status) {
+    return response.status(400).send('Missing required fields');
+  }
+  try{
+    let updatedBook = await mongomodel.findByIdAndUpdate(
+      bookId,
+      {title, description, status}
+    );
+    if (!updatedBook) {
+      return response.status(404).send('Book not found');
+    }
+
+    response.send(updatedBook);
+  } catch (error) {
+    response.status(500).send('Failed to update book');
+  }
+  });
+
 app.delete('/books/:id', async (request, response) => {
   let  bookId  = request.params.id;
 
