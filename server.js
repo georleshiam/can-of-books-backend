@@ -7,6 +7,7 @@ const mongoose = require(`mongoose`)
 const app = express();
 app.use(cors());
 app.use(express.json())
+app.use(verifyUser)
 
 const PORT = process.env.PORT || 3001;
 let mongomodel = undefined
@@ -23,14 +24,15 @@ async function Connect(){
   const bookSchema = new mongoose.Schema({
     title: String,
     description: String,
-    status: String
+    status: String,
+    email: String
   });
   mongomodel = mongoose.model(`Book`, bookSchema);
   
   const arrayOfBooks = [
-    { title: 'Book 1', description: 'Description 1', status: 'Available' },
-    { title: 'Book 2', description: 'Description 2', status: 'In Progress' },
-    { title: 'Book 3', description: 'Description 3', status: 'Completed' }
+    { title: 'Book 1', description: 'Description 1', status: 'Available', email: ``},
+    { title: 'Book 2', description: 'Description 2', status: 'In Progress', email:`` },
+    { title: 'Book 3', description: 'Description 3', status: 'Completed', email:`` }
   ];
   mongomodel.insertMany(arrayOfBooks)
 }
@@ -44,16 +46,21 @@ app.get('/test', (request, response) => {
 })
 app.get('/books', async (request,response) =>{
   
-let books = await mongomodel.find({});
+let books = await mongomodel.find({email: request.user.email}).exec();
 response.send(books)
 })
 app.post('/books', async (request, response) => {
   const { title, description, status } = request.body;
+  let book = request.body
+
+  book.email = request.user.email
+
+  await bookSchema.insertMany(book)
   
     if (!title || !description || !status) {
       return response.status(400).send('Missing required fields'); // Return a 400 Bad Request if any required fields are missing
     }
-  const newBook = await mongomodel.create({
+  let newBook = await mongomodel.create({
     title,
     description,
     status
