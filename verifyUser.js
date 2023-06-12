@@ -9,3 +9,4 @@ async function verifyUser(request, response, next) {
         request.user = response.data
     }
     next()
+}
