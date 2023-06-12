@@ -7,7 +7,12 @@ const mongoose = require(`mongoose`)
 const app = express();
 app.use(cors());
 app.use(express.json())
+
+let  verifyUser = require('./verifyUser');
+
+
 app.use(verifyUser)
+
 
 const PORT = process.env.PORT || 3001;
 let mongomodel = undefined
@@ -67,7 +72,7 @@ app.post('/books', async (request, response) => {
   });
  const insertedBooks = await mongomodel.insertMany([newBook]); // Insert the new book into the database
 
- if (insertedBooks.length === 0) {
+ if (!insertedBooks || insertedBooks.length === 0) {
   return response.status(500).send('Failed to insert book'); // Return a 500 Internal Server Error if the book insertion fails
 
 }
