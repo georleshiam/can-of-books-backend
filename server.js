@@ -7,8 +7,7 @@ const mongoose = require(`mongoose`)
 const app = express();
 app.use(cors());
 app.use(express.json())
-
-let  verifyUser = require('./verifyUser');
+let verifyUser = require('./verifyUser');
 
 
 app.use(verifyUser)
@@ -60,7 +59,7 @@ app.post('/books', async (request, response) => {
 
   book.email = request.user?.email
 
-  await bookSchema.insertMany(book)
+  await mongomodel.insertMany(book)
   
     if (!title || !description || !status) {
       return response.status(400).send('Missing required fields'); // Return a 400 Bad Request if any required fields are missing
