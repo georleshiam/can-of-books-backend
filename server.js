@@ -8,50 +8,46 @@ const app = express();
 app.use(cors());
 app.use(express.json())
 let verifyUser = require('./verifyUser');
-
-
 app.use(verifyUser)
 
 
 const PORT = process.env.PORT || 3001;
-let mongomodel = undefined
 
-async function Connect(){
-  await mongoose.connect(process.env.DATABASE_CONNECTION_STRING)
-  .then(()=>{
-   console.log("connected successfully")
+
+const bookSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  status: String,
+  email: String
+});
+const mongomodel = mongoose.model(`Book`, bookSchema);
+
+const arrayOfBooks = [
+  { title: 'Book 1', description: 'Description 1', status: 'Available', email: `` },
+  { title: 'Book 2', description: 'Description 2', status: 'In Progress', email: `` },
+  { title: 'Book 3', description: 'Description 3', status: 'Completed', email: `` }
+];
+
+mongoose.connect(process.env.DATABASE_CONNECTION_STRING)
+  .then(() => {
+    console.log("connected successfully")
+    mongomodel.insertMany(arrayOfBooks)
+
   })
-  .catch((err)=>{
+  .catch((err) => {
     console.log(err.message)
   })
 
-  const bookSchema = new mongoose.Schema({
-    title: String,
-    description: String,
-    status: String,
-    email: String
-  });
-  mongomodel = mongoose.model(`Book`, bookSchema);
-  
-  const arrayOfBooks = [
-    { title: 'Book 1', description: 'Description 1', status: 'Available', email: ``},
-    { title: 'Book 2', description: 'Description 2', status: 'In Progress', email:`` },
-    { title: 'Book 3', description: 'Description 3', status: 'Completed', email:`` }
-  ];
-  mongomodel.insertMany(arrayOfBooks)
-}
-
-Connect()
 
 
 app.get('/test', (request, response) => {
   response.send('test request received')
 
 })
-app.get('/books', async (request,response) =>{
-  
-let books = await mongomodel.find({email: request.user?.email}).exec();
-response.send(books)
+app.get('/books', async (request, response) => {
+
+  let books = await mongomodel.find({ email: request.user?.email }).exec();
+  response.send(books)
 })
 app.post('/books', async (request, response) => {
   const { title, description, status } = request.body;
@@ -60,24 +56,13 @@ app.post('/books', async (request, response) => {
   book.email = request.user?.email
 
   await mongomodel.insertMany(book)
-  
-    if (!title || !description || !status) {
-      return response.status(400).send('Missing required fields'); // Return a 400 Bad Request if any required fields are missing
-    }
-  let newBook = await mongomodel.create({
-    title,
-    description,
-    status
-  });
- const insertedBooks = await mongomodel.insertMany([newBook]); // Insert the new book into the database
 
- if (!insertedBooks || insertedBooks.length === 0) {
-  return response.status(500).send('Failed to insert book'); // Return a 500 Internal Server Error if the book insertion fails
+  if (!title || !description || !status) {
+    return response.status(400).send('Missing required fields'); // Return a 400 Bad Request if any required fields are missing
+  }
 
-}
+  response.send(book); // Send the created book as the response
 
-    response.send(newBook); // Send the created book as the response
-  
 });
 
 app.put('/books/:id', async (request, response) => {
@@ -87,10 +72,10 @@ app.put('/books/:id', async (request, response) => {
   if (!title || !description || !status) {
     return response.status(400).send('Missing required fields');
   }
-  try{
+  try {
     let updatedBook = await mongomodel.findByIdAndUpdate(
       bookId,
-      {title, description, status}
+      { title, description, status }
     );
     if (!updatedBook) {
       return response.status(404).send('Book not found');
@@ -100,10 +85,10 @@ app.put('/books/:id', async (request, response) => {
   } catch (error) {
     response.status(500).send('Failed to update book');
   }
-  });
+});
 
 app.delete('/books/:id', async (request, response) => {
-  let  bookId  = request.params.id;
+  let bookId = request.params.id;
 
   if (!id) {
     return response.status(400).send('Missing book ID');
