@@ -51,14 +51,14 @@ app.get('/test', (request, response) => {
 })
 app.get('/books', async (request,response) =>{
   
-let books = await mongomodel.find({email: request.user.email}).exec();
+let books = await mongomodel.find({email: request.user?.email}).exec();
 response.send(books)
 })
 app.post('/books', async (request, response) => {
   const { title, description, status } = request.body;
   let book = request.body
 
-  book.email = request.user.email
+  book.email = request.user?.email
 
   await bookSchema.insertMany(book)
   
